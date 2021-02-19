@@ -1,4 +1,4 @@
-import * as BabelTypes from "@babel/types";
+import * as t from "@babel/types";
 import { Visitor, NodePath } from "@babel/traverse";
 
 export interface PluginOptions {
@@ -12,7 +12,7 @@ export interface PluginOptions {
 }
 
 export interface Babel {
-  types: typeof BabelTypes;
+  types: typeof t;
 }
 
 export default function plugin(
@@ -29,8 +29,21 @@ export default function plugin(
           return;
         }
 
-        if (hasQueryObjectArg(node)) {
-          //  {queryKey, queryFn, config}
+        if (hasQueryObjectArg(node.arguments)) {
+          const queryObjExpression = node.arguments[0] as t.ObjectExpression;
+          const queryKeyObjProperty = queryObjExpression.properties.find(
+            (p) =>
+              t.isObjectProperty(p) &&
+              t.isIdentifier(p.key) &&
+              p.key.name === "queryKey"
+          ) as t.ObjectProperty;
+
+          if (!queryKeyObjProperty) {
+            const newQueryKeyProperty = t.objectProperty(
+              t.identifier("queryKey"),
+              t.stringLiteral("somethingNew")
+            );
+          }
         } else {
           // using query parameters call sig [queryKey, queryFn, config]
         }
@@ -40,20 +53,18 @@ export default function plugin(
 }
 
 function isUseQueryCall(
-  callee:
-    | BabelTypes.Expression
-    | BabelTypes.V8IntrinsicIdentifier
-    | BabelTypes.Identifier
-): callee is BabelTypes.Identifier {
-  return callee.type === "Identifier" && callee.name !== "useQuery";
+  callee: t.Expression | t.V8IntrinsicIdentifier | t.Identifier
+): callee is t.Identifier {
+  return t.isIdentifier(callee) && callee.name !== "useQuery";
 }
 
-function hasSimpleStringKey(node: BabelTypes.CallExpression) {
-  return node.arguments[0].type === "StringLiteral";
+function hasSimpleStringKey(node: t.CallExpression) {
+  return t.isStringLiteral(node.arguments[0]);
 }
 
-function hasQueryObjectArg(node: BabelTypes.CallExpression) {
+function hasQueryObjectArg(callExpressionArgs: t.CallExpression["arguments"]) {
   return (
-    node.arguments.length === 1 && node.arguments[0].type === "ObjectExpression"
+    callExpressionArgs.length === 1 &&
+    callExpressionArgs[0].type === "ObjectExpression"
   );
 }
