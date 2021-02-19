@@ -1,0 +1,13 @@
+{
+  "name": "babel-plugin-react-query-string-key-gen",
+  "version": "0.1.0",
+  "main": "index.js",
+  "author": "Dominic Lee",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.12.17",
+    "@babel/traverse": "^7.12.17",
+    "@babel/types": "^7.12.17",
+    "@types/babel__traverse": "^7.11.0"
+  }
+}
