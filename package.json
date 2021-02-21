@@ -4,10 +4,20 @@
   "main": "index.js",
   "author": "Dominic Lee",
   "license": "MIT",
+  "scripts": {
+    "test": "jest"
+  },
   "devDependencies": {
     "@babel/core": "^7.12.17",
     "@babel/traverse": "^7.12.17",
     "@babel/types": "^7.12.17",
-    "@types/babel__traverse": "^7.11.0"
+    "@types/babel__traverse": "^7.11.0",
+    "babel-plugin-tester": "^10.0.0",
+    "jest": "^26.6.3",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-query": "^3.9.8",
+    "ts-jest": "^26.5.1",
+    "typescript": "^4.1.5"
   }
 }
