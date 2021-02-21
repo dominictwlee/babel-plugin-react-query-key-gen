@@ -1,5 +1,41 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`babel-plugin-react-query-string-key-gen Infer queryFn name from async/await function block: Infer queryFn name from async/await function block 1`] = `
+
+const { data: plainData } = useQuery(
+  [{param1: 'abc'}],
+  async () => {
+    const blah = 'hello';
+    const someOtherStuff = calculate();
+    const result = await batchGetProductSwapList(productNumbers, idToken);
+    return result;
+  },
+  { enabled: true }
+);
+
+      ↓ ↓ ↓ ↓ ↓ ↓
+
+const { data: plainData } = useQuery(
+  [
+    'batchGetProductSwapList',
+    {
+      param1: 'abc',
+    },
+  ],
+  async () => {
+    const blah = 'hello';
+    const someOtherStuff = calculate();
+    const result = await batchGetProductSwapList(productNumbers, idToken);
+    return result;
+  },
+  {
+    enabled: true,
+  }
+);
+
+
+`;
+
 exports[`babel-plugin-react-query-string-key-gen adds string key to the start of array queryKey: adds string key to the start of array queryKey 1`] = `
 
 const { data } = useQuery([{id: 2}], () => getTodos());
