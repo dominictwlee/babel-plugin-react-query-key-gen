@@ -100,7 +100,7 @@ export default function plugin(
           } else {
             if (
               t.isArrayExpression(queryKeyProperty.value) &&
-              !t.isStringLiteral(queryKeyProperty.value[0])
+              !t.isStringLiteral(queryKeyProperty.value.elements[0])
             ) {
               queryKeyProperty.value.elements.unshift(queryFnName);
             }
