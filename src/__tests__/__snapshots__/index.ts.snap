@@ -1,0 +1,46 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`babel-plugin-react-query-string-key-gen adds string key to the start of array queryKey: adds string key to the start of array queryKey 1`] = `
+
+const { data } = useQuery([{id: 2}], () => getTodos());
+
+      ↓ ↓ ↓ ↓ ↓ ↓
+
+const { data } = useQuery(
+  [
+    'getTodos',
+    {
+      id: 2,
+    },
+  ],
+  () => getTodos()
+);
+
+
+`;
+
+exports[`babel-plugin-react-query-string-key-gen ignores function calls that are not useQuery: ignores function calls that are not useQuery 1`] = `
+
+const { data } = useSomethingElse([{id: 2}], () => getTodos());
+const { blah } = useQueryObject({queryFn: 'hello', queryKey: 'helloWorld', options: {}});
+callMe(1, 2, 3);
+
+      ↓ ↓ ↓ ↓ ↓ ↓
+
+const { data } = useSomethingElse(
+  [
+    {
+      id: 2,
+    },
+  ],
+  () => getTodos()
+);
+const { blah } = useQueryObject({
+  queryFn: 'hello',
+  queryKey: 'helloWorld',
+  options: {},
+});
+callMe(1, 2, 3);
+
+
+`;
