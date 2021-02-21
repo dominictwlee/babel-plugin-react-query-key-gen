@@ -112,20 +112,68 @@ export default function plugin(
 }
 
 function extractQueryFnNameFromBody(queryFn: t.Function) {
-  if (t.isCallExpression(queryFn.body)) {
-    if (t.isIdentifier(queryFn.body.callee)) {
-      return t.stringLiteral(queryFn.body.callee.name);
-    }
-  } else if (t.isBlockStatement(queryFn.body)) {
-    let queryFnName = '';
-    t.traverseFast(queryFn.body, (node) => {
-      if (t.isCallExpression(node) && t.isIdentifier(node.callee)) {
-        queryFnName = node.callee.name;
-      }
-    });
+  // Get string key from call expression of anonymous arrow function body
+  if (t.isCallExpression(queryFn.body) && t.isIdentifier(queryFn.body.callee)) {
+    return t.stringLiteral(queryFn.body.callee.name);
+  }
 
-    if (queryFnName) {
-      return t.stringLiteral(queryFnName);
+  // Get string key from named function expression
+  if (t.isFunctionExpression(queryFn) && t.isIdentifier(queryFn.id)) {
+    return t.stringLiteral(queryFn.id.name);
+  }
+
+  // attempt to infer queryFn name from block based on a few assumptions
+  if (t.isBlockStatement(queryFn.body)) {
+    const returnStatement = queryFn.body.body.find((bodyNode) =>
+      t.isReturnStatement(bodyNode)
+    ) as t.ReturnStatement | undefined;
+
+    if (!returnStatement) {
+      return null;
+    }
+
+    if (
+      t.isCallExpression(returnStatement.argument) &&
+      t.isIdentifier(returnStatement.argument.callee)
+    ) {
+      return t.stringLiteral(returnStatement.argument.callee.name);
+    }
+
+    // Find variable that holds result of queryFn call
+    if (t.isIdentifier(returnStatement.argument)) {
+      const { name } = returnStatement.argument;
+      const variableDeclaration = queryFn.body.body.find((bodyNode) => {
+        if (!t.isVariableDeclaration(bodyNode)) {
+          return false;
+        }
+
+        if (
+          t.isVariableDeclarator(bodyNode.declarations[0]) &&
+          t.isIdentifier(bodyNode.declarations[0].id)
+        ) {
+          return bodyNode.declarations[0].id.name === name;
+        }
+
+        return false;
+      }) as t.VariableDeclaration | undefined;
+
+      if (!variableDeclaration) {
+        return null;
+      }
+
+      const { init } = variableDeclaration.declarations[0];
+
+      if (t.isCallExpression(init) && t.isIdentifier(init.callee)) {
+        return t.stringLiteral(init.callee.name);
+      }
+
+      if (
+        t.isAwaitExpression(init) &&
+        t.isCallExpression(init.argument) &&
+        t.isIdentifier(init.argument.callee)
+      ) {
+        return t.stringLiteral(init.argument.callee.name);
+      }
     }
   }
 
