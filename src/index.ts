@@ -27,6 +27,10 @@ interface QueryObjectSignature extends t.CallExpression {
   arguments: [t.ObjectExpression, ...t.CallExpression['arguments']];
 }
 
+interface CallExpressionWithIdentifier extends t.CallExpression {
+  callee: t.Identifier;
+}
+
 export default function plugin(
   babel: Babel
 ): { name: string; visitor: Visitor<PluginOptions> } {
@@ -113,7 +117,7 @@ export default function plugin(
 
 function extractQueryFnNameFromBody(queryFn: t.Function) {
   // Get string key from call expression of anonymous arrow function body
-  if (t.isCallExpression(queryFn.body) && t.isIdentifier(queryFn.body.callee)) {
+  if (hasCalleeName(queryFn.body)) {
     return t.stringLiteral(queryFn.body.callee.name);
   }
 
@@ -132,10 +136,7 @@ function extractQueryFnNameFromBody(queryFn: t.Function) {
       return null;
     }
 
-    if (
-      t.isCallExpression(returnStatement.argument) &&
-      t.isIdentifier(returnStatement.argument.callee)
-    ) {
+    if (hasCalleeName(returnStatement.argument)) {
       return t.stringLiteral(returnStatement.argument.callee.name);
     }
 
@@ -163,21 +164,27 @@ function extractQueryFnNameFromBody(queryFn: t.Function) {
 
       const { init } = variableDeclaration.declarations[0];
 
-      if (t.isCallExpression(init) && t.isIdentifier(init.callee)) {
+      if (hasCalleeName(init)) {
         return t.stringLiteral(init.callee.name);
       }
 
-      if (
-        t.isAwaitExpression(init) &&
-        t.isCallExpression(init.argument) &&
-        t.isIdentifier(init.argument.callee)
-      ) {
+      if (t.isAwaitExpression(init) && hasCalleeName(init.argument)) {
         return t.stringLiteral(init.argument.callee.name);
       }
     }
   }
 
   return null;
+}
+
+function hasCalleeName(
+  node: object | null | undefined
+): node is CallExpressionWithIdentifier {
+  return !!(
+    t.isCallExpression(node) &&
+    t.isIdentifier(node.callee) &&
+    node.callee.name
+  );
 }
 
 function isUseQueryCall(
