@@ -55,7 +55,7 @@ export default function plugin(
 ): { name: string; visitor: Visitor<PluginOptions> } {
   const { types: t } = babel;
   return {
-    name: 'babel-plugin-react-query-string-key-gen', // not required
+    name: 'babel-plugin-react-query-string-key-gen',
     visitor: {
       CallExpression(path) {
         const { node } = path;
