@@ -2,8 +2,6 @@ import pluginTester from 'babel-plugin-tester';
 import path from 'path';
 import reactQueryStringKeyGenPlugin from '../index';
 
-console.log(__dirname);
-
 pluginTester({
   plugin: reactQueryStringKeyGenPlugin,
   pluginName: 'babel-plugin-react-query-string-key-gen',
