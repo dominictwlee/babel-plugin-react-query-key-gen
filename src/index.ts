@@ -37,7 +37,7 @@ interface ArrayKeyWithString extends ArrayExpression {
 }
 
 interface ParamsArrayKeySignature extends CallExpression {
-  arguments: [ArrayExpression, ...CallExpression['arguments']];
+  arguments: [ArrayKeyWithString, ...CallExpression['arguments']];
 }
 
 interface QueryObjectSignature extends CallExpression {
