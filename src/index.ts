@@ -171,7 +171,12 @@ function extractQueryFnNameFromBody(t: Babel['types'], queryFn: Function) {
     return t.stringLiteral(queryFn.id.name);
   }
 
-  // attempt to infer queryFn name from block based on a few assumptions
+  /**
+   * attempt to infer queryFn name from block based on a few assumptions
+   * 1. The query function is named
+   * 2. The query function is called within the block.
+   * 3. The resulting value of the invoked query function within the block will be returned
+   *  */
   if (t.isBlockStatement(queryFn.body)) {
     const returnStatement = queryFn.body.body.find((bodyNode) =>
       t.isReturnStatement(bodyNode)
