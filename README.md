@@ -8,7 +8,7 @@ Poor naming causes further confusion for the next person reading your code.
 ### Solution
 
 We could generate this key at build-time, inferring from the name of it's associated query function. Why name things twice when you can just
-reuse what's already there? This babel plugin will statically analyze your code and extract the query function from your `useQuery` hooks.
+reuse what's already there? This babel plugin will statically analyze your code and extract the query function name from your `useQuery` hooks.
 
 ### Installation
 
