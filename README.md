@@ -2,8 +2,8 @@
 
 ### Problem
 
-Naming things well is difficult in programming. A poorly named thing could cause further confusion for the next person reading your code.
-However, there is a fairly strong convention to include a string key as an identifier in the react-query query key.
+React Query uses the convention of a string key as a unique, readable identifier for queries. However, naming things well is difficult.
+Poor naming causes further confusion for the next person reading your code.
 
 ### Solution
 
