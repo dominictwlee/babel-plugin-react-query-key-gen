@@ -59,10 +59,20 @@ export default function plugin(
     visitor: {
       CallExpression(path) {
         const { node } = path;
-        if (
-          !isUseQueryCall(t, node.callee) ||
-          hasStringOnlyQueryKeyParam(t, node)
-        ) {
+        if (!isUseQueryCall(t, node.callee)) {
+          return;
+        }
+
+        const stringKeyLiteral = extractParamsQueryFnName(t, node);
+
+        if (hasStringOnlyQueryKeyParam(t, node)) {
+          if (stringKeyLiteral) {
+            if (node.arguments[0].value === '') {
+              node.arguments[0].value = stringKeyLiteral.value;
+            } else {
+              node.arguments.unshift(stringKeyLiteral);
+            }
+          }
           return;
         }
 
@@ -73,17 +83,14 @@ export default function plugin(
             return;
           }
 
-          const [arrayKey, queryFn] = node.arguments;
-          let stringKeyLiteral: StringLiteral | null = null;
-
-          if (t.isIdentifier(queryFn)) {
-            stringKeyLiteral = t.stringLiteral(queryFn.name);
-          } else if (t.isFunction(queryFn)) {
-            stringKeyLiteral = extractQueryFnNameFromBody(t, queryFn);
-          }
+          const [arrayKey] = node.arguments;
 
           if (stringKeyLiteral) {
-            arrayKey.elements.unshift(stringKeyLiteral);
+            if (t.isStringLiteral(arrayKey.elements[0])) {
+              arrayKey.elements[0].value = stringKeyLiteral.value;
+            } else {
+              arrayKey.elements.unshift(stringKeyLiteral);
+            }
           }
         } else if (hasQueryObject(t, node)) {
           const queryObjExpression = node.arguments[0];
@@ -135,6 +142,22 @@ export default function plugin(
       },
     },
   };
+}
+
+function extractParamsQueryFnName(
+  t: Babel['types'],
+  node: babelTypes.CallExpression
+) {
+  const [, queryFn] = node.arguments;
+  let stringKeyLiteral: StringLiteral | null = null;
+
+  if (t.isIdentifier(queryFn)) {
+    stringKeyLiteral = t.stringLiteral(queryFn.name);
+  } else if (t.isFunction(queryFn)) {
+    stringKeyLiteral = extractQueryFnNameFromBody(t, queryFn);
+  }
+
+  return stringKeyLiteral;
 }
 
 function extractQueryFnNameFromBody(t: Babel['types'], queryFn: Function) {
