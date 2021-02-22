@@ -5,7 +5,8 @@
   "author": "Dominic Lee",
   "scripts": {
     "test": "jest",
-    "build": "esbuild src/index.ts --bundle --platform=node --target=node10 --outfile=dist/index.js"
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node10 --outfile=dist/index.js",
+    "build:watch": "esbuild src/index.ts --bundle --platform=node --target=node10 --watch --outfile=dist/index.js"
   },
   "license": "MIT",
   "files": [
