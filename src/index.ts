@@ -1,4 +1,4 @@
-import * as t from '@babel/types';
+import * as babelTypes from '@babel/types';
 import { Visitor, NodePath } from '@babel/traverse';
 import type {
   CallExpression,
@@ -12,6 +12,8 @@ import type {
   StringLiteral,
   ArrayExpression,
   ObjectExpression,
+  ObjectProperty,
+  ObjectMember,
 } from '@babel/types';
 
 interface PluginOptions {
@@ -25,7 +27,7 @@ interface PluginOptions {
 }
 
 interface Babel {
-  types: typeof t;
+  types: typeof babelTypes;
 }
 
 interface ParamsStringOnlyQueryKeySignature extends CallExpression {
@@ -57,14 +59,17 @@ export default function plugin(
     visitor: {
       CallExpression(path) {
         const { node } = path;
-        if (!isUseQueryCall(node.callee) || hasStringOnlyQueryKeyParam(node)) {
+        if (
+          !isUseQueryCall(t, node.callee) ||
+          hasStringOnlyQueryKeyParam(t, node)
+        ) {
           return;
         }
 
         // Handle params call signature
-        if (hasParamsArrayKey(node)) {
+        if (hasParamsArrayKey(t, node)) {
           // ignore if string key already exists
-          if (hasStringKeyParam(node)) {
+          if (hasStringKeyParam(t, node)) {
             return;
           }
 
@@ -74,20 +79,20 @@ export default function plugin(
           if (t.isIdentifier(queryFn)) {
             stringKeyLiteral = t.stringLiteral(queryFn.name);
           } else if (t.isFunction(queryFn)) {
-            stringKeyLiteral = extractQueryFnNameFromBody(queryFn);
+            stringKeyLiteral = extractQueryFnNameFromBody(t, queryFn);
           }
 
           if (stringKeyLiteral) {
             arrayKey.elements.unshift(stringKeyLiteral);
           }
-        } else if (hasQueryObject(node)) {
+        } else if (hasQueryObject(t, node)) {
           const queryObjExpression = node.arguments[0];
           const queryKeyProperty = queryObjExpression.properties.find(
             (p) =>
               t.isObjectProperty(p) &&
               t.isIdentifier(p.key) &&
               p.key.name === 'queryKey'
-          ) as t.ObjectProperty;
+          ) as ObjectProperty;
 
           if (t.isStringLiteral(queryKeyProperty?.value)) {
             return;
@@ -98,16 +103,16 @@ export default function plugin(
               t.isObjectMember(p) &&
               t.isIdentifier(p.key) &&
               p.key.name === 'queryFn'
-          ) as t.ObjectMember;
+          ) as ObjectMember;
 
           if (!queryFnMember) {
             return;
           }
 
           const queryFnName = t.isObjectMethod(queryFnMember)
-            ? extractQueryFnNameFromBody(queryFnMember)
+            ? extractQueryFnNameFromBody(t, queryFnMember)
             : t.isFunction(queryFnMember.value)
-            ? extractQueryFnNameFromBody(queryFnMember.value)
+            ? extractQueryFnNameFromBody(t, queryFnMember.value)
             : null;
 
           if (!queryFnName) {
@@ -132,9 +137,9 @@ export default function plugin(
   };
 }
 
-function extractQueryFnNameFromBody(queryFn: Function) {
+function extractQueryFnNameFromBody(t: Babel['types'], queryFn: Function) {
   // Get string key from call expression of anonymous arrow function body
-  if (hasCalleeName(queryFn.body)) {
+  if (hasCalleeName(t, queryFn.body)) {
     return t.stringLiteral(queryFn.body.callee.name);
   }
 
@@ -153,7 +158,7 @@ function extractQueryFnNameFromBody(queryFn: Function) {
       return null;
     }
 
-    if (hasCalleeName(returnStatement.argument)) {
+    if (hasCalleeName(t, returnStatement.argument)) {
       return t.stringLiteral(returnStatement.argument.callee.name);
     }
 
@@ -181,11 +186,11 @@ function extractQueryFnNameFromBody(queryFn: Function) {
 
       const { init } = variableDeclaration.declarations[0];
 
-      if (hasCalleeName(init)) {
+      if (hasCalleeName(t, init)) {
         return t.stringLiteral(init.callee.name);
       }
 
-      if (t.isAwaitExpression(init) && hasCalleeName(init.argument)) {
+      if (t.isAwaitExpression(init) && hasCalleeName(t, init.argument)) {
         return t.stringLiteral(init.argument.callee.name);
       }
     }
@@ -195,6 +200,7 @@ function extractQueryFnNameFromBody(queryFn: Function) {
 }
 
 function hasCalleeName(
+  t: Babel['types'],
   node: object | null | undefined
 ): node is CallExpressionWithIdentifier {
   return !!(
@@ -205,30 +211,36 @@ function hasCalleeName(
 }
 
 function isUseQueryCall(
+  t: Babel['types'],
   callee: Expression | V8IntrinsicIdentifier | Identifier
 ): callee is Identifier {
   return t.isIdentifier(callee) && callee.name === 'useQuery';
 }
 
 function hasStringOnlyQueryKeyParam(
+  t: Babel['types'],
   node: CallExpression
 ): node is ParamsStringOnlyQueryKeySignature {
   return t.isStringLiteral(node.arguments[0]);
 }
 
 function hasParamsArrayKey(
+  t: Babel['types'],
   node: CallExpression
 ): node is ParamsArrayKeySignature {
   return t.isArrayExpression(node.arguments[0]);
 }
 
-function hasStringKeyParam(node: ParamsArrayKeySignature) {
+function hasStringKeyParam(t: Babel['types'], node: ParamsArrayKeySignature) {
   return (
     t.isStringLiteral(node.arguments[0].elements[0]) &&
     node.arguments[0].elements[0].value !== ''
   );
 }
 
-function hasQueryObject(node: t.CallExpression): node is QueryObjectSignature {
+function hasQueryObject(
+  t: Babel['types'],
+  node: CallExpression
+): node is QueryObjectSignature {
   return t.isObjectExpression(node.arguments[0]);
 }
