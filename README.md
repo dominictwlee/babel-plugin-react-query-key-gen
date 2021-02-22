@@ -32,7 +32,7 @@ You now have the option to exclude the string identifier from your query key if 
 However, if you do choose to include a string key manually, then nothing will change.
 This is to provide flexibility and ease of migration if you do decide to use this plugin.
 
-This plugin makes a few assumptions about your query key order:
+This plugin makes a few assumptions about your query key order and query function:
 
 1. It expects your unique string key to always be the first element in your array key.
 2. If you are using inline, anonymous query functions, it will try to infer the query function name from your function scope.
