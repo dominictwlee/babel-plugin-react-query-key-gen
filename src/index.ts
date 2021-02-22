@@ -1,5 +1,18 @@
 import * as t from '@babel/types';
 import { Visitor, NodePath } from '@babel/traverse';
+import type {
+  CallExpression,
+  Expression,
+  Identifier,
+  ReturnStatement,
+  SpreadElement,
+  V8IntrinsicIdentifier,
+  VariableDeclaration,
+  Function,
+  StringLiteral,
+  ArrayExpression,
+  ObjectExpression,
+} from '@babel/types';
 
 interface PluginOptions {
   opts?: {
@@ -15,20 +28,24 @@ interface Babel {
   types: typeof t;
 }
 
-interface ParamsStringOnlyQueryKeySignature extends t.CallExpression {
-  arguments: [t.StringLiteral, ...t.CallExpression['arguments']];
+interface ParamsStringOnlyQueryKeySignature extends CallExpression {
+  arguments: [StringLiteral, ...CallExpression['arguments']];
 }
 
-interface ParamsArrayKeySignature extends t.CallExpression {
-  arguments: [t.ArrayExpression, ...t.CallExpression['arguments']];
+interface ArrayKeyWithString extends ArrayExpression {
+  elements: [StringLiteral, ...(null | Expression | SpreadElement)[]];
 }
 
-interface QueryObjectSignature extends t.CallExpression {
-  arguments: [t.ObjectExpression, ...t.CallExpression['arguments']];
+interface ParamsArrayKeySignature extends CallExpression {
+  arguments: [ArrayExpression, ...CallExpression['arguments']];
 }
 
-interface CallExpressionWithIdentifier extends t.CallExpression {
-  callee: t.Identifier;
+interface QueryObjectSignature extends CallExpression {
+  arguments: [ObjectExpression, ...CallExpression['arguments']];
+}
+
+interface CallExpressionWithIdentifier extends CallExpression {
+  callee: Identifier;
 }
 
 export default function plugin(
@@ -52,7 +69,7 @@ export default function plugin(
           }
 
           const [arrayKey, queryFn] = node.arguments;
-          let stringKeyLiteral: t.StringLiteral | null = null;
+          let stringKeyLiteral: StringLiteral | null = null;
 
           if (t.isIdentifier(queryFn)) {
             stringKeyLiteral = t.stringLiteral(queryFn.name);
@@ -115,7 +132,7 @@ export default function plugin(
   };
 }
 
-function extractQueryFnNameFromBody(queryFn: t.Function) {
+function extractQueryFnNameFromBody(queryFn: Function) {
   // Get string key from call expression of anonymous arrow function body
   if (hasCalleeName(queryFn.body)) {
     return t.stringLiteral(queryFn.body.callee.name);
@@ -130,7 +147,7 @@ function extractQueryFnNameFromBody(queryFn: t.Function) {
   if (t.isBlockStatement(queryFn.body)) {
     const returnStatement = queryFn.body.body.find((bodyNode) =>
       t.isReturnStatement(bodyNode)
-    ) as t.ReturnStatement | undefined;
+    ) as ReturnStatement | undefined;
 
     if (!returnStatement) {
       return null;
@@ -156,7 +173,7 @@ function extractQueryFnNameFromBody(queryFn: t.Function) {
         }
 
         return false;
-      }) as t.VariableDeclaration | undefined;
+      }) as VariableDeclaration | undefined;
 
       if (!variableDeclaration) {
         return null;
@@ -188,25 +205,28 @@ function hasCalleeName(
 }
 
 function isUseQueryCall(
-  callee: t.Expression | t.V8IntrinsicIdentifier | t.Identifier
-): callee is t.Identifier {
+  callee: Expression | V8IntrinsicIdentifier | Identifier
+): callee is Identifier {
   return t.isIdentifier(callee) && callee.name === 'useQuery';
 }
 
 function hasStringOnlyQueryKeyParam(
-  node: t.CallExpression
+  node: CallExpression
 ): node is ParamsStringOnlyQueryKeySignature {
   return t.isStringLiteral(node.arguments[0]);
 }
 
 function hasParamsArrayKey(
-  node: t.CallExpression
+  node: CallExpression
 ): node is ParamsArrayKeySignature {
   return t.isArrayExpression(node.arguments[0]);
 }
 
 function hasStringKeyParam(node: ParamsArrayKeySignature) {
-  return t.isStringLiteral(node.arguments[0].elements[0]);
+  return (
+    t.isStringLiteral(node.arguments[0].elements[0]) &&
+    node.arguments[0].elements[0].value !== ''
+  );
 }
 
 function hasQueryObject(node: t.CallExpression): node is QueryObjectSignature {
