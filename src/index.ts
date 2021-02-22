@@ -1,4 +1,5 @@
 import * as babelTypes from '@babel/types';
+import { nanoid } from 'nanoid';
 import { Visitor, NodePath } from '@babel/traverse';
 import type {
   CallExpression,
@@ -91,6 +92,8 @@ export default function plugin(
             } else {
               arrayKey.elements.unshift(stringKeyLiteral);
             }
+          } else {
+            arrayKey.elements.unshift(t.stringLiteral(nanoid(10)));
           }
         } else if (hasQueryObject(t, node)) {
           const queryObjExpression = node.arguments[0];
@@ -120,7 +123,7 @@ export default function plugin(
             ? extractQueryFnNameFromBody(t, queryFnMember)
             : t.isFunction(queryFnMember.value)
             ? extractQueryFnNameFromBody(t, queryFnMember.value)
-            : null;
+            : t.stringLiteral(nanoid(10));
 
           if (!queryFnName) {
             return;
