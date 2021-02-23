@@ -93,7 +93,17 @@ export default function plugin(
 
           const queryFnWrapper = node.arguments[1];
           const additionalKeyEls = arrayKey.elements.slice(1);
-          const queryFnArgs = extractQueryFnArgs(t, node.arguments[1]);
+          const queryFnArgs = extractQueryFnArgs(t, queryFnWrapper);
+          const missingKeys = queryFnArgs.filter(
+            (fnArg) =>
+              additionalKeyEls.findIndex((keyEl) => {
+                if (t.isIdentifier(fnArg) && t.isIdentifier(keyEl)) {
+                  return fnArg.name === keyEl.name;
+                }
+
+                return false;
+              }) > -1
+          );
 
           return;
         }
