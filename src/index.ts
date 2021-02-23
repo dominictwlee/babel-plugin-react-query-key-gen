@@ -91,9 +91,9 @@ export default function plugin(
             return;
           }
 
+          const queryFnWrapper = node.arguments[1];
           const additionalKeyEls = arrayKey.elements.slice(1);
-          const queryFnArgs = node.arguments[1];
-          t.isLiteral;
+          const queryFnArgs = extractQueryFnArgs(t, node.arguments[1]);
 
           return;
         }
@@ -166,7 +166,17 @@ function extractParamsQueryFnName(
   return stringKeyLiteral;
 }
 
-// function extractQueryFnArgs(t: Babel['types'], queryFn: Function) {}
+function extractQueryFnArgs(t: Babel['types'], queryFn: Function) {
+  if (t.isCallExpression(queryFn.body)) {
+    return queryFn.body.arguments;
+  }
+
+  if (t.isBlockStatement(queryFn.body)) {
+    return findNestedQueryFn(t, queryFn.body)?.arguments ?? [];
+  }
+
+  return [];
+}
 
 function extractQueryFnNameFromBody(t: Babel['types'], queryFn: Function) {
   // Get string key from call expression of anonymous arrow function body
@@ -233,6 +243,84 @@ function extractQueryFnNameFromBody(t: Babel['types'], queryFn: Function) {
   }
 
   return null;
+}
+
+function findNestedQueryFn(
+  t: Babel['types'],
+  block: babelTypes.BlockStatement
+) {
+  const returnStatement = findReturnStatement(t, block);
+  if (!returnStatement) {
+    return null;
+  }
+
+  if (t.isCallExpression(returnStatement.argument)) {
+    return returnStatement.argument;
+  }
+
+  /**
+   * Find variable that holds result of queryFn call.
+   * A fairly naive implementation that only handles simple cases like:
+   *
+   *
+   * async () => {
+   *  const result = await fetchData(a, b);
+   *   return result;
+   * }
+   *
+   * () => {
+   *   const result = fetchData(productNumbers, idToken);
+   *   return result;
+   * }
+   *
+   * This is just to cover the grounds for the assumption that the anonymous function
+   * serves as a basic wrapper for the nested queryFn to access variables in its closure.
+   *
+   * Not entirely sure how to reliably extract nested queryFn information with blocks that have complex
+   * logic in it yet.
+   *  */
+  if (t.isIdentifier(returnStatement.argument)) {
+    const { name } = returnStatement.argument;
+    const variableDeclaration = block.body.find((bodyNode) => {
+      if (!t.isVariableDeclaration(bodyNode)) {
+        return false;
+      }
+
+      if (
+        t.isVariableDeclarator(bodyNode.declarations[0]) &&
+        t.isIdentifier(bodyNode.declarations[0].id)
+      ) {
+        return bodyNode.declarations[0].id.name === name;
+      }
+
+      return false;
+    }) as VariableDeclaration | undefined;
+
+    if (!variableDeclaration) {
+      return null;
+    }
+
+    const { init } = variableDeclaration.declarations[0];
+    let queryFn: babelTypes.CallExpression | null = null;
+    t.traverseFast(init, (node) => {
+      if (t.isCallExpression(node)) {
+        queryFn = node;
+      }
+    });
+
+    return queryFn;
+  }
+
+  return null;
+}
+
+function findReturnStatement(
+  t: Babel['types'],
+  block: babelTypes.BlockStatement
+) {
+  return block.body.find((bodyNode) => t.isReturnStatement(bodyNode)) as
+    | babelTypes.ReturnStatement
+    | undefined;
 }
 
 function hasCalleeName(
