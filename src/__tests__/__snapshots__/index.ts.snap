@@ -2,9 +2,14 @@
 
 exports[`babel-plugin-react-query-string-key-gen Generate uuid key if queryFn name cannot be inferred: Generate uuid key if queryFn name cannot be inferred 1`] = `
 
-const { data } = useQuery([{id: 2}], () => [1, 2, id]);
+const { data } = useQuery([{id: 2}], async () => [1, 2, id]);
+
 const { data: data2 } = useQuery([], () => {
   return Promise.resolve('hello');
+});
+
+const { data: data3 } = useQuery('', () => {
+  return new Promise((res) => res('hello world'));
 });
 
       ↓ ↓ ↓ ↓ ↓ ↓
@@ -16,10 +21,13 @@ const { data } = useQuery(
       id: 2,
     },
   ],
-  () => [1, 2, id]
+  async () => [1, 2, id]
 );
 const { data: data2 } = useQuery(['mock-nanoid'], () => {
   return Promise.resolve('hello');
+});
+const { data: data3 } = useQuery('mock-nanoid', () => {
+  return new Promise((res) => res('hello world'));
 });
 
 

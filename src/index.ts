@@ -64,15 +64,14 @@ export default function plugin(
           return;
         }
 
-        const stringKeyLiteral = extractParamsQueryFnName(t, node);
+        const stringKeyLiteral =
+          extractParamsQueryFnName(t, node) ?? createUuidStringLiteral(t);
 
-        if (hasStringOnlyQueryKeyParam(t, node)) {
-          if (stringKeyLiteral) {
-            if (node.arguments[0].value === '') {
-              node.arguments[0].value = stringKeyLiteral.value;
-            } else {
-              node.arguments.unshift(stringKeyLiteral);
-            }
+        if (hasStringOnlyQueryKey(t, node)) {
+          if (node.arguments[0].value === '') {
+            node.arguments[0] = stringKeyLiteral;
+          } else {
+            node.arguments.unshift(stringKeyLiteral);
           }
           return;
         }
@@ -95,7 +94,10 @@ export default function plugin(
           } else {
             arrayKey.elements.unshift(t.stringLiteral(nanoid(10)));
           }
-        } else if (hasQueryObject(t, node)) {
+          return;
+        }
+
+        if (hasQueryObject(t, node)) {
           const queryObjExpression = node.arguments[0];
           const queryKeyProperty = queryObjExpression.properties.find(
             (p) =>
@@ -248,7 +250,7 @@ function isUseQueryCall(
   return t.isIdentifier(callee) && callee.name === 'useQuery';
 }
 
-function hasStringOnlyQueryKeyParam(
+function hasStringOnlyQueryKey(
   t: Babel['types'],
   node: CallExpression
 ): node is ParamsStringOnlyQueryKeySignature {
@@ -274,4 +276,8 @@ function hasQueryObject(
   node: CallExpression
 ): node is QueryObjectSignature {
   return t.isObjectExpression(node.arguments[0]);
+}
+
+function createUuidStringLiteral(t: Babel['types'], size: number = 10) {
+  return t.stringLiteral(nanoid(size));
 }
