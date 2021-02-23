@@ -85,15 +85,12 @@ export default function plugin(
 
           const [arrayKey] = node.arguments;
 
-          if (stringKeyLiteral) {
-            if (t.isStringLiteral(arrayKey.elements[0])) {
-              arrayKey.elements[0].value = stringKeyLiteral.value;
-            } else {
-              arrayKey.elements.unshift(stringKeyLiteral);
-            }
+          if (t.isStringLiteral(arrayKey.elements[0])) {
+            arrayKey.elements[0].value = stringKeyLiteral.value;
           } else {
-            arrayKey.elements.unshift(t.stringLiteral(nanoid(10)));
+            arrayKey.elements.unshift(stringKeyLiteral);
           }
+
           return;
         }
 
