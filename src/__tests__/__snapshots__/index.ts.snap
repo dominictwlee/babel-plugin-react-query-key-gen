@@ -1,5 +1,30 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`babel-plugin-react-query-string-key-gen Generate uuid key if queryFn name cannot be inferred: Generate uuid key if queryFn name cannot be inferred 1`] = `
+
+const { data } = useQuery([{id: 2}], () => [1, 2, id]);
+const { data: data2 } = useQuery([], () => {
+  return Promise.resolve('hello');
+});
+
+      ↓ ↓ ↓ ↓ ↓ ↓
+
+const { data } = useQuery(
+  [
+    'mock-nanoid',
+    {
+      id: 2,
+    },
+  ],
+  () => [1, 2, id]
+);
+const { data: data2 } = useQuery(['mock-nanoid'], () => {
+  return Promise.resolve('hello');
+});
+
+
+`;
+
 exports[`babel-plugin-react-query-string-key-gen Infer queryFn name from async/await function block: Infer queryFn name from async/await function block 1`] = `
 
 const { data: plainData } = useQuery(

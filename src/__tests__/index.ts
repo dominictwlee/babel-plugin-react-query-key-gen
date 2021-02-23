@@ -2,6 +2,8 @@ import pluginTester from 'babel-plugin-tester';
 import path from 'path';
 import reactQueryStringKeyGenPlugin from '../index';
 
+jest.mock('nanoid');
+
 pluginTester({
   plugin: reactQueryStringKeyGenPlugin,
   pluginName: 'babel-plugin-react-query-string-key-gen',
@@ -25,6 +27,15 @@ pluginTester({
         },
         { enabled: true }
       );
+      `,
+      snapshot: true,
+    },
+    'Generate uuid key if queryFn name cannot be inferred': {
+      code: `
+        const { data } = useQuery([{id: 2}], () => [1, 2, id]);
+        const { data: data2 } = useQuery([], () => {
+          return Promise.resolve('hello');
+        });
       `,
       snapshot: true,
     },
