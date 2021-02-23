@@ -76,20 +76,24 @@ export default function plugin(
           return;
         }
 
-        // Handle params call signature
-        if (hasParamsArrayKey(t, node)) {
-          // ignore if string key already exists
-          if (hasStringKeyParam(t, node)) {
+        if (hasArrayKeyArg(t, node)) {
+          const [arrayKey] = node.arguments;
+
+          if (!hasFirstElStringKey(t, node)) {
+            if (t.isStringLiteral(arrayKey.elements[0])) {
+              arrayKey.elements[0].value = stringKeyLiteral.value;
+            } else {
+              arrayKey.elements.unshift(stringKeyLiteral);
+            }
+          }
+
+          if (!t.isFunction(node.arguments[1])) {
             return;
           }
 
-          const [arrayKey] = node.arguments;
-
-          if (t.isStringLiteral(arrayKey.elements[0])) {
-            arrayKey.elements[0].value = stringKeyLiteral.value;
-          } else {
-            arrayKey.elements.unshift(stringKeyLiteral);
-          }
+          const additionalKeyEls = arrayKey.elements.slice(1);
+          const queryFnArgs = node.arguments[1];
+          t.isLiteral;
 
           return;
         }
@@ -161,6 +165,8 @@ function extractParamsQueryFnName(
 
   return stringKeyLiteral;
 }
+
+// function extractQueryFnArgs(t: Babel['types'], queryFn: Function) {}
 
 function extractQueryFnNameFromBody(t: Babel['types'], queryFn: Function) {
   // Get string key from call expression of anonymous arrow function body
@@ -254,14 +260,14 @@ function hasStringOnlyQueryKey(
   return t.isStringLiteral(node.arguments[0]);
 }
 
-function hasParamsArrayKey(
+function hasArrayKeyArg(
   t: Babel['types'],
   node: CallExpression
 ): node is ParamsArrayKeySignature {
   return t.isArrayExpression(node.arguments[0]);
 }
 
-function hasStringKeyParam(t: Babel['types'], node: ParamsArrayKeySignature) {
+function hasFirstElStringKey(t: Babel['types'], node: ParamsArrayKeySignature) {
   return (
     t.isStringLiteral(node.arguments[0].elements[0]) &&
     node.arguments[0].elements[0].value !== ''
