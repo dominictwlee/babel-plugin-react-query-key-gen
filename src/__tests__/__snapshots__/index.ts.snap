@@ -2,19 +2,19 @@
 
 exports[`babel-plugin-react-query-string-key-gen Generate uuid key if queryFn name cannot be inferred: Generate uuid key if queryFn name cannot be inferred 1`] = `
 
-const { data } = useQuery([{id: 2}], async () => [1, 2, id]);
+useQuery([{id: 2}], async () => [1, 2, id]);
 
-const { data: data2 } = useQuery([], () => {
+useQuery([], () => {
   return Promise.resolve('hello');
 });
 
-const { data: data3 } = useQuery('', () => {
+useQuery('', () => {
   return new Promise((res) => res('hello world'));
 });
 
       ↓ ↓ ↓ ↓ ↓ ↓
 
-const { data } = useQuery(
+useQuery(
   [
     'mock-nanoid',
     {
@@ -23,10 +23,10 @@ const { data } = useQuery(
   ],
   async () => [1, 2, id]
 );
-const { data: data2 } = useQuery(['mock-nanoid'], () => {
+useQuery(['mock-nanoid'], () => {
   return Promise.resolve('hello');
 });
-const { data: data3 } = useQuery('mock-nanoid', () => {
+useQuery('mock-nanoid', () => {
   return new Promise((res) => res('hello world'));
 });
 
@@ -35,7 +35,7 @@ const { data: data3 } = useQuery('mock-nanoid', () => {
 
 exports[`babel-plugin-react-query-string-key-gen Infer queryFn name from async/await function block: Infer queryFn name from async/await function block 1`] = `
 
-const { data: plainData } = useQuery(
+useQuery(
   [{param1: 'abc'}],
   async () => {
     const blah = 'hello';
@@ -48,7 +48,7 @@ const { data: plainData } = useQuery(
 
       ↓ ↓ ↓ ↓ ↓ ↓
 
-const { data: plainData } = useQuery(
+useQuery(
   [
     'batchGetProductSwapList',
     {
@@ -71,11 +71,11 @@ const { data: plainData } = useQuery(
 
 exports[`babel-plugin-react-query-string-key-gen adds string key to the start of array queryKey: adds string key to the start of array queryKey 1`] = `
 
-const { data } = useQuery([{id: 2}], () => getTodos());
+useQuery([{id: 2}], () => getTodos());
 
       ↓ ↓ ↓ ↓ ↓ ↓
 
-const { data } = useQuery(
+useQuery(
   [
     'getTodos',
     {
@@ -90,13 +90,13 @@ const { data } = useQuery(
 
 exports[`babel-plugin-react-query-string-key-gen ignores function calls that are not useQuery: ignores function calls that are not useQuery 1`] = `
 
-const { data } = useSomethingElse([{id: 2}], () => getTodos());
-const { blah } = useQueryObject({queryFn: 'hello', queryKey: 'helloWorld', options: {}});
+useSomethingElse([{id: 2}], () => getTodos());
+useQueryObject({queryFn: 'hello', queryKey: 'helloWorld', options: {}});
 callMe(1, 2, 3);
 
       ↓ ↓ ↓ ↓ ↓ ↓
 
-const { data } = useSomethingElse(
+useSomethingElse(
   [
     {
       id: 2,
@@ -104,7 +104,7 @@ const { data } = useSomethingElse(
   ],
   () => getTodos()
 );
-const { blah } = useQueryObject({
+useQueryObject({
   queryFn: 'hello',
   queryKey: 'helloWorld',
   options: {},

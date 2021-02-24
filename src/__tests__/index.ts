@@ -11,13 +11,13 @@ pluginTester({
   tests: {
     'adds string key to the start of array queryKey': {
       code: `
-        const { data } = useQuery([{id: 2}], () => getTodos());
+        useQuery([{id: 2}], () => getTodos());
       `,
       snapshot: true,
     },
     'Infer queryFn name from async/await function block': {
       code: `
-        const { data: plainData } = useQuery(
+        useQuery(
         [{param1: 'abc'}],
         async () => {
           const blah = 'hello';
@@ -32,13 +32,13 @@ pluginTester({
     },
     'Generate uuid key if queryFn name cannot be inferred': {
       code: `
-        const { data } = useQuery([{id: 2}], async () => [1, 2, id]);
+        useQuery([{id: 2}], async () => [1, 2, id]);
         
-        const { data: data2 } = useQuery([], () => {
+        useQuery([], () => {
           return Promise.resolve('hello');
         });
 
-        const { data: data3 } = useQuery('', () => {
+        useQuery('', () => {
           return new Promise((res) => res('hello world'));
         });
       `,
@@ -46,8 +46,8 @@ pluginTester({
     },
     'ignores function calls that are not useQuery': {
       code: `
-        const { data } = useSomethingElse([{id: 2}], () => getTodos());
-        const { blah } = useQueryObject({queryFn: 'hello', queryKey: 'helloWorld', options: {}});
+        useSomethingElse([{id: 2}], () => getTodos());
+        useQueryObject({queryFn: 'hello', queryKey: 'helloWorld', options: {}});
         callMe(1, 2, 3);
       `,
       snapshot: true,
