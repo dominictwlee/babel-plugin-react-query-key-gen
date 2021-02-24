@@ -32,6 +32,10 @@ interface Babel {
   types: typeof babelTypes;
 }
 
+interface QueryKeyProperty extends ObjectProperty {
+  value: ArrayKeyWithString;
+}
+
 interface ParamsStringOnlyQueryKeySignature extends CallExpression {
   arguments: [StringLiteral, ...CallExpression['arguments']];
 }
@@ -108,12 +112,9 @@ export default function plugin(
 
         if (hasQueryObject(t, node)) {
           const [queryObjExpression] = node.arguments;
-          const queryKeyProperty = queryObjExpression.properties.find(
-            (p) =>
-              t.isObjectProperty(p) &&
-              t.isIdentifier(p.key) &&
-              p.key.name === 'queryKey'
-          ) as ObjectProperty | undefined;
+          let queryKeyProperty = queryObjExpression.properties.find((p) =>
+            isQueryKeyProperty(t, p)
+          ) as QueryKeyProperty | undefined;
 
           if (t.isStringLiteral(queryKeyProperty?.value)) {
             return;
@@ -124,7 +125,7 @@ export default function plugin(
               t.isObjectMember(p) &&
               t.isIdentifier(p.key) &&
               p.key.name === 'queryFn'
-          ) as ObjectMember;
+          ) as ObjectMember | undefined;
 
           if (!queryFnMember) {
             return;
@@ -139,16 +140,38 @@ export default function plugin(
 
           if (!queryKeyProperty) {
             queryObjExpression.properties.push(
-              t.objectProperty(t.identifier('queryKey'), queryFnName)
+              t.objectProperty(
+                t.identifier('queryKey'),
+                t.arrayExpression([queryFnName])
+              )
             );
-          } else {
-            if (
-              t.isArrayExpression(queryKeyProperty.value) &&
-              !t.isStringLiteral(queryKeyProperty.value.elements[0])
-            ) {
-              queryKeyProperty.value.elements.unshift(queryFnName);
-            }
+            queryKeyProperty = queryObjExpression.properties.find((p) =>
+              isQueryKeyProperty(t, p)
+            ) as QueryKeyProperty;
+          } else if (
+            t.isArrayExpression(queryKeyProperty.value) &&
+            !t.isStringLiteral(queryKeyProperty.value.elements[0])
+          ) {
+            queryKeyProperty.value.elements.unshift(queryFnName);
           }
+
+          const { elements: queryKeyEls } = queryKeyProperty.value;
+          const queryFn = t.isFunction(queryFnMember)
+            ? queryFnMember
+            : t.isFunction(queryFnMember.value)
+            ? queryFnMember.value
+            : null;
+          const queryFnArgs = queryFn ? extractQueryFnArgs(t, queryFn) : [];
+          const missingKeys = diffKeyElsAndQueryFnArgs(
+            t,
+            queryKeyEls,
+            queryFnArgs
+          );
+
+          queryKeyProperty.value.elements = [
+            ...queryKeyProperty.value.elements,
+            ...missingKeys,
+          ];
         }
       },
     },
@@ -367,6 +390,17 @@ function hasQueryObject(
 
 function createUuidStringLiteral(t: Babel['types'], size: number = 10) {
   return t.stringLiteral(nanoid(size));
+}
+
+function isQueryKeyProperty(
+  t: Babel['types'],
+  node: ObjectExpression['properties'][0]
+): node is QueryKeyProperty {
+  return (
+    t.isObjectProperty(node) &&
+    t.isIdentifier(node.key) &&
+    node.key.name === 'queryKey'
+  );
 }
 
 function diffKeyElsAndQueryFnArgs(

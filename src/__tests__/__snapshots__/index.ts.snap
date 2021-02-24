@@ -82,6 +82,31 @@ useQuery(['fetchTodos', id], () => fetchTodos(id));
 
 `;
 
+exports[`babel-plugin-react-query-string-key-gen adds missing queryFn name and args to array key in params function signature: adds missing queryFn name and args to array key in params function signature 1`] = `
+
+useQuery([], () => fetchTodos(id));
+
+      ↓ ↓ ↓ ↓ ↓ ↓
+
+useQuery(['fetchTodos', id], () => fetchTodos(id));
+
+
+`;
+
+exports[`babel-plugin-react-query-string-key-gen adds missing queryFn name and args to array key in queryObject signature: adds missing queryFn name and args to array key in queryObject signature 1`] = `
+
+useQuery({queryFn: () => fetchTodos(id, meta)});
+
+      ↓ ↓ ↓ ↓ ↓ ↓
+
+useQuery({
+  queryFn: () => fetchTodos(id, meta),
+  queryKey: ['fetchTodos'],
+});
+
+
+`;
+
 exports[`babel-plugin-react-query-string-key-gen adds string key to the start of array queryKey: adds string key to the start of array queryKey 1`] = `
 
 useQuery([{id: 2}], () => getTodos());

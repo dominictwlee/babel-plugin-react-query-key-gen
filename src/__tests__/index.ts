@@ -52,9 +52,17 @@ pluginTester({
       `,
       snapshot: true,
     },
-    'adds missing queryFn args to array key in params function signature': {
+    'adds missing queryFn name and args to array key in params function signature': {
       code: `
         useQuery([], () => fetchTodos(id));
+      `,
+      snapshot: true,
+    },
+    'adds missing queryFn name and args to array key in queryObject signature': {
+      code: `
+        useQuery({queryFn: () => fetchTodos(id, meta)});
+
+        useQuery({queryKey: [], queryFn: () => {return getUsers(userId, filter)}});
       `,
       snapshot: true,
     },
