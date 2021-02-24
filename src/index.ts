@@ -129,15 +129,12 @@ export default function plugin(
             return;
           }
 
-          const queryFnName = t.isObjectMethod(queryFnMember)
-            ? extractQueryFnNameFromBody(t, queryFnMember)
-            : t.isFunction(queryFnMember.value)
-            ? extractQueryFnNameFromBody(t, queryFnMember.value)
-            : t.stringLiteral(nanoid(10));
-
-          if (!queryFnName) {
-            return;
-          }
+          const queryFnName =
+            (t.isObjectMethod(queryFnMember)
+              ? extractQueryFnNameFromBody(t, queryFnMember)
+              : t.isFunction(queryFnMember.value)
+              ? extractQueryFnNameFromBody(t, queryFnMember.value)
+              : null) ?? t.stringLiteral(nanoid(10));
 
           if (!queryKeyProperty) {
             queryObjExpression.properties.push(
