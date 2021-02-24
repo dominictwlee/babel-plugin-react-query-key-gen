@@ -47,7 +47,7 @@ pluginTester({
     'ignores function calls that are not useQuery': {
       code: `
         useSomethingElse([{id: 2}], () => getTodos());
-        useQueryObject({queryFn: 'hello', queryKey: 'helloWorld', options: {}});
+        useSimilarCallSignature({queryFn: 'hello', queryKey: 'helloWorld', options: {}});
         callMe(1, 2, 3);
       `,
       snapshot: true,
