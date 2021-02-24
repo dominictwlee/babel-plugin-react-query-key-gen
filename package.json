@@ -1,5 +1,5 @@
 {
-  "name": "babel-plugin-react-query-string-key-gen",
+  "name": "babel-plugin-react-query-key-gen",
   "version": "0.3.0",
   "main": "dist/index.js",
   "author": "Dominic Lee",
@@ -28,7 +28,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dominictwlee/babel-plugin-react-query-string-key-gen.git"
+    "url": "git+https://github.com/dominictwlee/babel-plugin-react-query-key-gen.git"
   },
   "engines": {
     "node": ">=10",
