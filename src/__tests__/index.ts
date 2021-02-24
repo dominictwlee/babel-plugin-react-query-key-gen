@@ -33,7 +33,7 @@ pluginTester({
     'Generate uuid key if queryFn name cannot be inferred': {
       code: `
         useQuery([{id: 2}], async () => [1, 2, id]);
-        
+
         useQuery([], () => {
           return Promise.resolve('hello');
         });

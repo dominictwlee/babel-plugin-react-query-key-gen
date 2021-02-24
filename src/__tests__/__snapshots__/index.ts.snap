@@ -54,6 +54,8 @@ useQuery(
     {
       param1: 'abc',
     },
+    productNumbers,
+    idToken,
   ],
   async () => {
     const blah = 'hello';
