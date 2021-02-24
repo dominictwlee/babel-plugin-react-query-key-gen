@@ -77,7 +77,7 @@ export default function plugin(
         }
 
         if (hasArrayKeyArg(t, node)) {
-          const [arrayKey] = node.arguments;
+          let [arrayKey] = node.arguments;
 
           if (!hasFirstElStringKey(t, node)) {
             if (t.isStringLiteral(arrayKey.elements[0])) {
@@ -103,8 +103,9 @@ export default function plugin(
 
                 return false;
               }) > -1
-          );
+          ) as babelTypes.Identifier[];
 
+          arrayKey.elements = [...arrayKey.elements, ...missingKeys];
           return;
         }
 
