@@ -92,24 +92,16 @@ export default function plugin(
           }
 
           const queryFnWrapper = node.arguments[1];
-          const additionalKeyEls = arrayKey.elements.filter((keyEl) =>
-            t.isIdentifier(keyEl)
-          ) as babelTypes.Identifier[];
           const queryFnArgs = extractQueryFnArgs(t, queryFnWrapper);
 
-          const missingKeys = queryFnArgs.filter((fnArg) => {
-            if (!t.isIdentifier(fnArg)) {
-              return false;
-            }
+          const missingKeys = diffKeyElsAndQueryFnArgs(
+            t,
+            arrayKey.elements,
+            queryFnArgs
+          );
 
-            const foundInArrayKey = additionalKeyEls.find(
-              (keyEl) => fnArg.name === keyEl.name
-            );
+          arrayKey.elements = [...arrayKey.elements, ...missingKeys];
 
-            return !foundInArrayKey;
-          }) as babelTypes.Identifier[];
-
-          node.arguments[0].elements = [...arrayKey.elements, ...missingKeys];
           return;
         }
 
@@ -386,4 +378,28 @@ function hasQueryObject(
 
 function createUuidStringLiteral(t: Babel['types'], size: number = 10) {
   return t.stringLiteral(nanoid(size));
+}
+
+function diffKeyElsAndQueryFnArgs(
+  t: Babel['types'],
+  keyEls: ArrayKeyWithString['elements'],
+  queryFnArgs: babelTypes.CallExpression['arguments']
+) {
+  const additionalKeyElIdentifiers = keyEls.filter((keyEl) =>
+    t.isIdentifier(keyEl)
+  ) as babelTypes.Identifier[];
+
+  const missingKeys = queryFnArgs.filter((fnArg) => {
+    if (!t.isIdentifier(fnArg)) {
+      return false;
+    }
+
+    const foundInArrayKey = additionalKeyElIdentifiers.find(
+      (keyEl) => fnArg.name === keyEl.name
+    );
+
+    return !foundInArrayKey;
+  }) as babelTypes.Identifier[];
+
+  return missingKeys;
 }
