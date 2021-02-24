@@ -102,15 +102,11 @@ export default function plugin(
               return false;
             }
 
-            const found = additionalKeyEls.find(
+            const foundInArrayKey = additionalKeyEls.find(
               (keyEl) => fnArg.name === keyEl.name
             );
 
-            if (!found) {
-              return true;
-            }
-
-            return false;
+            return !foundInArrayKey;
           }) as babelTypes.Identifier[];
 
           node.arguments[0].elements = [...arrayKey.elements, ...missingKeys];
