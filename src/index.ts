@@ -15,6 +15,7 @@ import type {
   ObjectExpression,
   ObjectProperty,
   ObjectMember,
+  BlockStatement,
 } from '@babel/types';
 
 interface PluginOptions {
@@ -106,13 +107,13 @@ export default function plugin(
         }
 
         if (hasQueryObject(t, node)) {
-          const queryObjExpression = node.arguments[0];
+          const [queryObjExpression] = node.arguments;
           const queryKeyProperty = queryObjExpression.properties.find(
             (p) =>
               t.isObjectProperty(p) &&
               t.isIdentifier(p.key) &&
               p.key.name === 'queryKey'
-          ) as ObjectProperty;
+          ) as ObjectProperty | undefined;
 
           if (t.isStringLiteral(queryKeyProperty?.value)) {
             return;
@@ -154,10 +155,7 @@ export default function plugin(
   };
 }
 
-function extractParamsQueryFnName(
-  t: Babel['types'],
-  node: babelTypes.CallExpression
-) {
+function extractParamsQueryFnName(t: Babel['types'], node: CallExpression) {
   const [, queryFn] = node.arguments;
   let stringKeyLiteral: StringLiteral | null = null;
 
@@ -249,10 +247,7 @@ function extractQueryFnNameFromBody(t: Babel['types'], queryFn: Function) {
   return null;
 }
 
-function findNestedQueryFn(
-  t: Babel['types'],
-  block: babelTypes.BlockStatement
-) {
+function findNestedQueryFn(t: Babel['types'], block: BlockStatement) {
   const returnStatement = findReturnStatement(t, block);
   if (!returnStatement) {
     return null;
@@ -305,7 +300,7 @@ function findNestedQueryFn(
     }
 
     const { init } = variableDeclaration.declarations[0];
-    let queryFn: babelTypes.CallExpression | null = null;
+    let queryFn: CallExpression | null = null;
     t.traverseFast(init, (node) => {
       if (t.isCallExpression(node)) {
         queryFn = node;
@@ -318,12 +313,9 @@ function findNestedQueryFn(
   return null;
 }
 
-function findReturnStatement(
-  t: Babel['types'],
-  block: babelTypes.BlockStatement
-) {
+function findReturnStatement(t: Babel['types'], block: BlockStatement) {
   return block.body.find((bodyNode) => t.isReturnStatement(bodyNode)) as
-    | babelTypes.ReturnStatement
+    | ReturnStatement
     | undefined;
 }
 
@@ -380,11 +372,11 @@ function createUuidStringLiteral(t: Babel['types'], size: number = 10) {
 function diffKeyElsAndQueryFnArgs(
   t: Babel['types'],
   keyEls: ArrayKeyWithString['elements'],
-  queryFnArgs: babelTypes.CallExpression['arguments']
+  queryFnArgs: CallExpression['arguments']
 ) {
   const additionalKeyElIdentifiers = keyEls.filter((keyEl) =>
     t.isIdentifier(keyEl)
-  ) as babelTypes.Identifier[];
+  ) as Identifier[];
 
   const missingKeys = queryFnArgs.filter((fnArg) => {
     if (!t.isIdentifier(fnArg)) {
@@ -396,7 +388,7 @@ function diffKeyElsAndQueryFnArgs(
     );
 
     return !foundInArrayKey;
-  }) as babelTypes.Identifier[];
+  }) as Identifier[];
 
   return missingKeys;
 }
