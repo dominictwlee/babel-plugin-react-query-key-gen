@@ -94,18 +94,24 @@ export default function plugin(
           const queryFnWrapper = node.arguments[1];
           const additionalKeyEls = arrayKey.elements.slice(1);
           const queryFnArgs = extractQueryFnArgs(t, queryFnWrapper);
-          const missingKeys = queryFnArgs.filter(
-            (fnArg) =>
+
+          const missingKeys = queryFnArgs.filter((fnArg) => {
+            if (!t.isIdentifier(fnArg)) {
+              return false;
+            }
+
+            return (
               additionalKeyEls.findIndex((keyEl) => {
-                if (t.isIdentifier(fnArg) && t.isIdentifier(keyEl)) {
+                if (t.isIdentifier(keyEl)) {
                   return fnArg.name === keyEl.name;
                 }
+                return true;
+              }) < 0
+            );
+          }) as babelTypes.Identifier[];
+          console.log(missingKeys, 'MISSING KEYS');
 
-                return false;
-              }) > -1
-          ) as babelTypes.Identifier[];
-
-          arrayKey.elements = [...arrayKey.elements, ...missingKeys];
+          node.arguments[0].elements = [...arrayKey.elements, ...missingKeys];
           return;
         }
 

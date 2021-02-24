@@ -52,5 +52,11 @@ pluginTester({
       `,
       snapshot: true,
     },
+    'adds missing queryFn args to array key in params function signature': {
+      code: `
+        useQuery([], () => fetchTodos(id));
+      `,
+      snapshot: true,
+    },
   },
 });
