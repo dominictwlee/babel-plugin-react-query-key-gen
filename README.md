@@ -1,4 +1,4 @@
-# babel-plugin-react-query-string-key-gen
+# babel-plugin-react-query-key-gen
 
 ### Problem
 
@@ -19,16 +19,16 @@ and fill in the missing keys according to that.
 ### Installation
 
 yarn:
-`yarn add babel-plugin-react-query-string-key-gen --dev`
+`yarn add babel-plugin-react-query-key-gen --dev`
 
 npm:
-`npm install babel-plugin-react-query-string-key-gen --dev`
+`npm install babel-plugin-react-query-key-gen --dev`
 
 Then, add plugin to your `.babelrc`
 
 ```json
 {
-  "plugins": ["babel-plugin-react-query-string-key-gen"]
+  "plugins": ["babel-plugin-react-query-key-gen"]
 }
 ```
 
