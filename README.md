@@ -5,7 +5,7 @@
 React Query uses the convention of a string key as a unique, readable identifier for queries. However, naming things well is difficult.
 Poor naming causes further confusion for the next person reading your code.
 
-Also, query keys should include variables that your query function depends on. [Query function dependencies]https://react-query.tanstack.com/guides/query-keys#if-your-query-function-depends-on-a-variable-include-it-in-your-query-key. You will most likely be introducing stale data and bugs if you're not
+Also, query keys should include variables that your query function depends on. [Query function dependencies](https://react-query.tanstack.com/guides/query-keys#if-your-query-function-depends-on-a-variable-include-it-in-your-query-key). You will most likely be introducing stale data and bugs if you're not
 following this advice.
 
 ### Solution
