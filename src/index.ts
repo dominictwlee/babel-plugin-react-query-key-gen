@@ -408,17 +408,30 @@ function diffKeyElsAndQueryFnArgs(
   keyEls: ArrayKeyWithString['elements'],
   queryFnArgs: CallExpression['arguments']
 ) {
-  const additionalKeyElIdentifiers = keyEls.filter((keyEl) =>
-    t.isIdentifier(keyEl)
-  ) as Identifier[];
+  const queryKeyIdentifierNames: string[] = [];
+
+  for (const node of keyEls) {
+    if (t.isIdentifier(node)) {
+      queryKeyIdentifierNames.push(node.name);
+    } else if (t.isObjectExpression(node)) {
+      for (const objectMember of node.properties) {
+        if (
+          t.isObjectProperty(objectMember) &&
+          t.isIdentifier(objectMember.value)
+        ) {
+          queryKeyIdentifierNames.push(objectMember.value.name);
+        }
+      }
+    }
+  }
 
   const missingKeys = queryFnArgs.filter((fnArg) => {
     if (!t.isIdentifier(fnArg)) {
       return false;
     }
 
-    const foundInArrayKey = additionalKeyElIdentifiers.find(
-      (keyEl) => fnArg.name === keyEl.name
+    const foundInArrayKey = queryKeyIdentifierNames.find(
+      (keyElName) => fnArg.name === keyElName
     );
 
     return !foundInArrayKey;

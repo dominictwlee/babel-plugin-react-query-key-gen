@@ -54,7 +54,7 @@ pluginTester({
     },
     'adds missing queryFn name and args to array key in params function signature': {
       code: `
-        useQuery([], () => fetchTodos(id));
+        useQuery([{timeStamp}], () => fetchTodos(id, timeStamp));
       `,
       snapshot: true,
     },
@@ -62,7 +62,7 @@ pluginTester({
       code: `
         useQuery({queryFn: () => fetchTodos(id, meta)});
 
-        useQuery({queryKey: [], queryFn: () => {return getUsers(userId, filter)}});
+        useQuery({queryKey: [{filter}], queryFn: () => {return getUsers(userId, filter)}});
       `,
       snapshot: true,
     },

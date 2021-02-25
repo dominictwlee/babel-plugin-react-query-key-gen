@@ -73,11 +73,20 @@ useQuery(
 
 exports[`babel-plugin-react-query-string-key-gen adds missing queryFn name and args to array key in params function signature: adds missing queryFn name and args to array key in params function signature 1`] = `
 
-useQuery([], () => fetchTodos(id));
+useQuery([{timeStamp}], () => fetchTodos(id, timeStamp));
 
       ↓ ↓ ↓ ↓ ↓ ↓
 
-useQuery(['fetchTodos', id], () => fetchTodos(id));
+useQuery(
+  [
+    'fetchTodos',
+    {
+      timeStamp,
+    },
+    id,
+  ],
+  () => fetchTodos(id, timeStamp)
+);
 
 
 `;
@@ -86,7 +95,7 @@ exports[`babel-plugin-react-query-string-key-gen adds missing queryFn name and a
 
 useQuery({queryFn: () => fetchTodos(id, meta)});
 
-useQuery({queryKey: [], queryFn: () => {return getUsers(userId, filter)}});
+useQuery({queryKey: [{filter}], queryFn: () => {return getUsers(userId, filter)}});
 
       ↓ ↓ ↓ ↓ ↓ ↓
 
@@ -95,7 +104,13 @@ useQuery({
   queryKey: ['fetchTodos', id, meta],
 });
 useQuery({
-  queryKey: ['getUsers', userId, filter],
+  queryKey: [
+    'getUsers',
+    {
+      filter,
+    },
+    userId,
+  ],
   queryFn: () => {
     return getUsers(userId, filter);
   },
